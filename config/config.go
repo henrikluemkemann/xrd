@@ -41,7 +41,7 @@ func SelfSignedCertificate(name pkix.Name) ([]byte, *ecdsa.PrivateKey) {
 		Subject:      name,
 
 		PublicKeyAlgorithm: x509.ECDSA,
-		PublicKey:          priv.PublicKey,
+		PublicKey:          &priv.PublicKey,
 
 		IsCA:     true,
 		KeyUsage: x509.KeyUsageCertSign,
