@@ -2,6 +2,7 @@ package xrd
 
 import (
 	"crypto/ecdsa"
+	"encoding/csv"
 	"fmt"
 	"log"
 	"net"
@@ -178,11 +179,11 @@ func createNetworkConfig(numBoxes, numClients, groupSize, numGroups int) (map[st
 }
 
 func TestXRD(t *testing.T) {
-	numMailboxes := 2
-	numClients := 2
-	groupSize := 8
-	numGroups := 4
-	numUsers := 1000
+	numMailboxes := 20
+	numClients := 10
+	groupSize := 10
+	numGroups := 10
+	numUsers := 250000
 	msgSize := 256
 
 	mcfgs, ccfgs, scfgs, gcfgs := createNetworkConfig(numMailboxes, numClients, groupSize, numGroups)
@@ -193,7 +194,7 @@ func TestXRD(t *testing.T) {
 	createServers(coordinator.PublicKey(), mcfgs, scfgs, gcfgs)
 	createClients(ccfgs, mcfgs, scfgs, gcfgs)
 
-	for i := 0; i < 2; i++ {
+	for i := 0; i < 1; i++ {
 		log.Println("Setup new rounds")
 		err := coordinator.NewRound(i, numUsers)
 		if err != nil {
@@ -214,10 +215,43 @@ func TestXRD(t *testing.T) {
 			t.Error(err)
 		}
 
+		startTime := time.Now()
+		log.Println("Timer starts now")
+
 		log.Println("Start routing")
 		err = coordinator.StartExperiment(i)
 		if err != nil {
 			t.Error(err)
 		}
+
+		latency := time.Since(startTime)
+		log.Println("Experiment finished" + latency.String())
+
+		err = saveResultsToCSV(numUsers, latency, "result.csv")
 	}
+}
+
+func saveResultsToCSV(numUsers int, latency time.Duration, filename string) error {
+	// Open the CSV file in append mode, create the file if it doesn't exist.
+	//log.Println("IN CSV METHOD")
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to open CSV file for appending: %v", err)
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	// Write the result
+	row := []string{
+		fmt.Sprintf("%d", numUsers),
+		fmt.Sprintf("%.2f", float64(latency.Milliseconds())),
+	}
+	if err := writer.Write(row); err != nil {
+		return fmt.Errorf("failed to write row: %v", err)
+	}
+
+	log.Printf("Results appended to %s", filename)
+	return nil
 }
