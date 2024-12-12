@@ -183,7 +183,7 @@ func TestXRD(t *testing.T) {
 	numClients := 10
 	groupSize := 10
 	numGroups := 10
-	numUsers := 250000
+	numUsers := 200000
 	msgSize := 256
 
 	mcfgs, ccfgs, scfgs, gcfgs := createNetworkConfig(numMailboxes, numClients, groupSize, numGroups)
@@ -227,11 +227,11 @@ func TestXRD(t *testing.T) {
 		latency := time.Since(startTime)
 		log.Println("Experiment finished" + latency.String())
 
-		err = saveResultsToCSV(numUsers, latency, "result.csv")
+		err = saveResultsToCSV(numUsers, latency, "result.csv") // change the file name accordingly
 	}
 }
 
-func saveResultsToCSV(numUsers int, latency time.Duration, filename string) error {
+func saveResultsToCSV(arg1 int, latency time.Duration, filename string) error {
 	// Open the CSV file in append mode, create the file if it doesn't exist.
 	//log.Println("IN CSV METHOD")
 	file, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -245,7 +245,7 @@ func saveResultsToCSV(numUsers int, latency time.Duration, filename string) erro
 
 	// Write the result
 	row := []string{
-		fmt.Sprintf("%d", numUsers),
+		fmt.Sprintf("%d", arg1),
 		fmt.Sprintf("%.2f", float64(latency.Milliseconds())),
 	}
 	if err := writer.Write(row); err != nil {
